@@ -5,8 +5,45 @@ date: "3/20/2023"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+## #4 Social Networks in rural South India
+
+```{r setup, error=FALSE, warning=FALSE, message=FALSE}
+library(igraph)
+library(gplots)
+library(plyr)
+library(dplyr)
 knitr::opts_chunk$set(echo = TRUE)
+options(digits = 2)
+```
+
+I use the adjacency matrices to make networks for each relationship type and the metadata file to assign vertex attributes to the vertices in each of those networks. More precisely, I use the attributes for caste (using the castesubcaste column), religion (using the hohreligion column), and wealth (in this case, I am using a proxy - the room_no column, making the assumption that wealthier households have bigger houses with more rooms.
+
+
+```{r, echo=FALSE}
+attributes_village35 <- read.csv("vil35_meta.csv")
+borrow_money <- read.csv("adj_borrowmoney_HH_vilno_35.csv", header=FALSE, sep=";")
+lend_money <- read.csv("adj_lendmoney_HH_vilno_35.csv", header=FALSE, sep=";")
+borrow_fufo <- read.csv("adj_keroricego_HH_vilno_35.csv", header=FALSE, sep=";")
+lend_fufo <- read.csv("adj_keroricecome_HH_vilno_35.csv", header=FALSE, sep=";")
+```
+
+```{r}
+borrow_money_g <- graph_from_adjacency_matrix(as.matrix(borrow_money), mode = "undirected")
+lend_money_g <- graph_from_adjacency_matrix(as.matrix(lend_money), mode = "undirected")
+borrow_fufo_g <- graph_from_adjacency_matrix(as.matrix(borrow_fufo), mode = "undirected")
+lend_fufo_g <- graph_from_adjacency_matrix(as.matrix(lend_fufo), mode = "undirected")
+
+graphs <- list(borrow_money_g, lend_money_g, borrow_fufo_g, lend_fufo_g)
+for (i in 1:length(graphs)) {
+  V(graphs[[i]])$caste <- attributes_village35$castesubcaste
+  V(graphs[[i]])$religion <- attributes_village35$hohreligion
+  V(graphs[[i]])$wealth <- attributes_village35$room_no
+}
+
+borrow_money_g <- graphs[[1]]
+lend_money_g <- graphs[[2]]
+borrow_fufo_g <- graphs[[3]]
+lend_fufo_g <- graphs[[4]]
 ```
 
 ## R Markdown
