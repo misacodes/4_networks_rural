@@ -9,15 +9,15 @@ output: html_document
 
 ```{r setup, error=FALSE, warning=FALSE, message=FALSE}
 library(igraph)
-library(gplots)
+# library(gplots)
 library(plyr)
 library(dplyr)
 knitr::opts_chunk$set(echo = TRUE)
 options(digits = 2)
 ```
 
+## Prepping the data
 I use the adjacency matrices to make networks for each relationship type and the metadata file to assign vertex attributes to the vertices in each of those networks. More precisely, I use the attributes for caste (using the castesubcaste column), religion (using the hohreligion column), and wealth (in this case, I am using a proxy - the room_no column, making the assumption that wealthier households have bigger houses with more rooms.
-
 
 ```{r, echo=FALSE}
 attributes_village35 <- read.csv("vil35_meta.csv")
@@ -46,14 +46,71 @@ borrow_fufo_g <- graphs[[3]]
 lend_fufo_g <- graphs[[4]]
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+## Creating and visualizing the merged network
+I create one merged network by adding all the adjacency matrices together and generating a new network based on that summed adjacency matrix. I plot this network twice, once with nodes coloured by caste, and once coloured by religion, with nodes sized by wealth (number of rooms) and  edge width scaled by the number of connections the households have. A legend is included to show the label associated with each colour (so, the colour associated with each religion or each caste).
 
 ```{r cars}
-summary(cars)
+borrow_money_adj  <- get.adjacency(borrow_money_g)
+lend_money_adj  <- get.adjacency(lend_money_g)
+borrow_fufo_adj  <- get.adjacency(borrow_fufo_g)
+lend_fufo_adj  <- get.adjacency(lend_fufo_g)
+
+borrow_money_adj_matrix <- as.matrix(borrow_money_adj)
+lend_money_adj_matrix <- as.matrix(lend_money_adj)
+borrow_fufo_adj_matrix <- as.matrix(borrow_fufo_adj)
+lend_fufo_adj_matrix <- as.matrix(lend_fufo_adj)
+
+super_matrix <- borrow_money_adj_matrix + lend_money_adj_matrix + borrow_fufo_adj_matrix + lend_fufo_adj_matrix
+super_matrix_g <- graph_from_adjacency_matrix(as.matrix(super_matrix), mode = "undirected")
+V(super_matrix_g)$caste <- attributes_village35$castesubcaste
+V(super_matrix_g)$caste_num <-revalue(V(super_matrix_g)$caste, c("GENERAL"=1, "SCHEDULE CASTE"=2, "OBC"=3, "SCHEDULE TRIBE"=4,  "MINORITY"=5))
+as.numeric(V(super_matrix_g)$caste_num)
+V(super_matrix_g)$religion <- attributes_village35$hohreligion
+V(super_matrix_g)$wealth <- attributes_village35$room_no
+row_super_matrix <- rowSums(super_matrix)
+dlayout <- layout.fruchterman.reingold(super_matrix_g)
+
+# graph with nodes colored by caste 
+par(mar = c(2, 1, 2, 6), 
+    xpd = TRUE)
+plot(super_matrix_g,
+     vertex.size = V(super_matrix_g)$wealth*2,
+     vertex.color = V(super_matrix_g)$caste_num,
+     vertex.label = NA,
+     edge.arrow.size = 0.25, 
+     edge.width=row_super_matrix*0.4,
+     edge.color = "azure3",
+     edge.curved = 0,
+     main = "Combined network colored by caste",
+     layout=dlayout)
+legend("bottomright", inset = c(-0.20,-0.05),  
+       legend = c("Forward Caste (General Class)", "Scheduled Caste", "Other Backwards Caste", "Scheduled Tribe", "Muslim"), 
+       pch = 19, 
+       col = categorical_pal(5)[c(1,2,3,4,5)],
+       cex = 0.8,
+       title = "Castes",
+       pt.cex = 1.1)
+
+# graph with nodes colored by religion 
+par(mar = c(2, 1, 2, 6), 
+    xpd = TRUE)
+plot(super_matrix_g,
+     vertex.size = V(super_matrix_g)$wealth*2,
+     vertex.color = V(super_matrix_g)$religion,
+     vertex.label = NA,
+     edge.width=row_super_matrix*0.4,
+     edge.color = "azure3",
+     edge.curved = 0,
+     main = "Combined network colored by religion",
+     layout=dlayout)
+legend("bottomright", inset = c(-0.20,-0.05),  
+       legend = c("Hinduism", "Islam", "Christianity"), 
+       pch = 19, 
+       col = categorical_pal(3)[c(1,2,3)],
+       cex = 0.8,
+       title = "Religion",
+       pt.cex = 1.1)
+
 ```
 
 ## Including Plots
