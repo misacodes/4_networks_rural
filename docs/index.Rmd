@@ -48,6 +48,22 @@ lend_fufo_g <- graphs[[4]]
 
 ## Creating and visualizing the merged network
 I create one merged network by adding all the adjacency matrices together and generating a new network based on that summed adjacency matrix. I plot this network twice, once with nodes coloured by caste, and once coloured by religion, with nodes sized by wealth (number of rooms) and  edge width scaled by the number of connections the households have. A legend is included to show the label associated with each colour (so, the colour associated with each religion or each caste).
+```{r}
+borrow_money_adj  <- get.adjacency(borrow_money_g)
+lend_money_adj  <- get.adjacency(lend_money_g)
+borrow_fufo_adj  <- get.adjacency(borrow_fufo_g)
+lend_fufo_adj  <- get.adjacency(lend_fufo_g)
+
+borrow_money_adj_matrix <- as.matrix(borrow_money_adj)
+lend_money_adj_matrix <- as.matrix(lend_money_adj)
+borrow_fufo_adj_matrix <- as.matrix(borrow_fufo_adj)
+lend_fufo_adj_matrix <- as.matrix(lend_fufo_adj)
+
+super_matrix <- borrow_money_adj_matrix + lend_money_adj_matrix + borrow_fufo_adj_matrix + lend_fufo_adj_matrix
+super_matrix_g <- graph_from_adjacency_matrix(as.matrix(super_matrix), mode = "undirected")
+V(super_matrix_g)$caste <- attributes_village35$castesubcaste
+V(super_matrix_g)$caste
+```
 
 ```{r cars}
 borrow_money_adj  <- get.adjacency(borrow_money_g)
@@ -63,7 +79,7 @@ lend_fufo_adj_matrix <- as.matrix(lend_fufo_adj)
 super_matrix <- borrow_money_adj_matrix + lend_money_adj_matrix + borrow_fufo_adj_matrix + lend_fufo_adj_matrix
 super_matrix_g <- graph_from_adjacency_matrix(as.matrix(super_matrix), mode = "undirected")
 V(super_matrix_g)$caste <- attributes_village35$castesubcaste
-V(super_matrix_g)$caste_num <-revalue(V(super_matrix_g)$caste, c("GENERAL"=1, "SCHEDULE CASTE"=2, "OBC"=3, "SCHEDULE TRIBE"=4,  "MINORITY"=5))
+V(super_matrix_g)$caste_num <-revalue(V(super_matrix_g)$caste, c(1 = "GENERAL", 2 = "SCHEDULE CASTE", 3 = "OBC", 4 = "SCHEDULE TRIBE",  5 = "MINORITY"))
 as.numeric(V(super_matrix_g)$caste_num)
 V(super_matrix_g)$religion <- attributes_village35$hohreligion
 V(super_matrix_g)$wealth <- attributes_village35$room_no
