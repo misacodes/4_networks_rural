@@ -134,7 +134,28 @@ legend("bottomright", inset = c(-0.20,-0.05),
 You can also embed plots, for example:
 
 ```{r pressure, echo=FALSE}
-plot(pressure)
+t1 <- transitivity(borrow_money_g)
+t2 <- transitivity(lend_money_g)
+t3 <- transitivity(borrow_fufo_g)
+t4 <- transitivity(lend_fufo_g)
+
+# Religion and caste are categorical variables and so, for these, I will calculate modularity/homophily based on enumerative characteristics using the command assortativity.nominal() 
+# In contrast, the number of rooms (proxy of wealth) is a continuous variable and so I will caluculate homophily based on scalar characteristics using the assortativity() command (Newman, 2010).
+
+a11 <- assortativity.nominal(borrow_money_g,factor(V(borrow_money_g)$caste)) 
+a21 <- assortativity.nominal(lend_money_g,factor(V(lend_money_g)$caste)) 
+a31 <- assortativity.nominal(borrow_fufo_g,factor(V(borrow_fufo_g)$caste)) 
+a41 <- assortativity.nominal(lend_fufo_g,factor(V(lend_fufo_g)$caste)) 
+
+a12 <- assortativity.nominal(borrow_money_g,factor(V(borrow_money_g)$religion)) 
+a22 <- assortativity.nominal(lend_money_g,factor(V(lend_money_g)$religion)) 
+a32 <- assortativity.nominal(borrow_fufo_g,factor(V(borrow_fufo_g)$religion)) 
+a42 <- assortativity.nominal(lend_fufo_g,factor(V(lend_fufo_g)$religion)) 
+
+a13 <- assortativity(borrow_money_g,factor(V(borrow_money_g)$wealth)) 
+a23 <- assortativity(lend_money_g, V(lend_money_g)$wealth)
+a33 <- assortativity(borrow_fufo_g,factor(V(borrow_fufo_g)$wealth)) 
+a43 <- assortativity(lend_fufo_g,factor(V(lend_fufo_g)$wealth)) 
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
