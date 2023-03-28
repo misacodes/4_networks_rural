@@ -8,7 +8,7 @@ output: html_document
 ## #4 Social Networks in Rural South India
 This project is the 4/8 part of my mini-series on social network analysis. The goal of this series is to start with the very basics of network analysis, such as with the concepts of centrality and assortativity, and progress towards more advanced topics, including Erdős-Rényi and Configuration models, as well as Exponential family random graphs. In this fourth episode, I look into the concepts of **assortativity and transitivity in rural social networks**. I analyze social ties of one rural South Indian village that was featured as village 35 in a research paper titled **Social Capital and Social Quilts: Network Patterns of Favor Exchange** by **Matthew Jackson, Tomas Rodriguez-Barraquer, and Xu Tan**. The researchers surveyed inhabitants of the village about their religion, caste and wealth (proxied by the number of rooms in their house), and also asked them **who they would go to, to borrow money or to borrow food**. Similarly, they asked the participants which fellow villages would ask them for help when in need of money or food. The central question of the present part of the mini-series is whether the exchange of food and money happens **preferentially among households from the same castes, same religions and among households with similar levels of wealth.**
 
-```{r setup, error=FALSE, warning=FALSE, message=FALSE}
+```{r setup, echo = FALSE, error=FALSE, warning=FALSE, message=FALSE}
 library(igraph)
 library(plyr)
 library(dplyr)
@@ -27,7 +27,7 @@ borrow_fufo <- read.csv("adj_keroricego_HH_vilno_35.csv", header=FALSE, sep=";")
 lend_fufo <- read.csv("adj_keroricecome_HH_vilno_35.csv", header=FALSE, sep=";")
 ```
 
-```{r}
+```{r, echo=FALSE}
 borrow_money_g <- graph_from_adjacency_matrix(as.matrix(borrow_money), mode = "undirected")
 lend_money_g <- graph_from_adjacency_matrix(as.matrix(lend_money), mode = "undirected")
 borrow_fufo_g <- graph_from_adjacency_matrix(as.matrix(borrow_fufo), mode = "undirected")
@@ -50,7 +50,7 @@ lend_fufo_g <- graphs[[4]]
 I create one merged network by adding all the adjacency matrices together and generating a new network based on that summed adjacency matrix. I plot this network twice, once with nodes coloured by caste, and once coloured by religion, with nodes sized by wealth (number of rooms) and  edge width scaled by the number of connections the households have. A legend is included to show the label associated with each colour (so, the colour associated with each religion or each caste).
 
 
-```{r}
+```{r, echo=FALSE}
 borrow_money_adj  <- get.adjacency(borrow_money_g)
 lend_money_adj  <- get.adjacency(lend_money_g)
 borrow_fufo_adj  <- get.adjacency(borrow_fufo_g)
@@ -87,7 +87,7 @@ legend("bottomright", inset = c(-0.20,-0.05),
        pch = 19, 
        col = categorical_pal(5)[c(1,2,3,4,5)],
        cex = 0.8,
-       title = "Castes",
+       title = "Caste",
        pt.cex = 1.1)
 
 # graph with nodes colored by religion 
@@ -103,9 +103,9 @@ plot(super_matrix_g,
      main = "Combined network colored by religion",
      layout=dlayout)
 legend("bottomright", inset = c(-0.20,-0.05),  
-       legend = c("Hinduism", "Islam", "Christianity"), 
+       legend = c("Hinduism", "Islam"), 
        pch = 19, 
-       col = categorical_pal(3)[c(1,2,3)],
+       col = categorical_pal(2)[c(1,2)],
        cex = 0.8,
        title = "Religion",
        pt.cex = 1.1)
