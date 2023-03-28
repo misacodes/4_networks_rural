@@ -10,7 +10,6 @@ This project is the 4/8 part of my mini-series on social network analysis. The g
 
 ```{r setup, error=FALSE, warning=FALSE, message=FALSE}
 library(igraph)
-# library(gplots)
 library(plyr)
 library(dplyr)
 knitr::opts_chunk$set(echo = TRUE)
@@ -65,7 +64,6 @@ lend_fufo_adj_matrix <- as.matrix(lend_fufo_adj)
 super_matrix <- borrow_money_adj_matrix + lend_money_adj_matrix + borrow_fufo_adj_matrix + lend_fufo_adj_matrix
 super_matrix_g <- graph_from_adjacency_matrix(as.matrix(super_matrix), mode = "undirected")
 V(super_matrix_g)$caste <- attributes_village35$castesubcaste
-as.numeric(V(super_matrix_g)$caste_num)
 V(super_matrix_g)$religion <- attributes_village35$hohreligion
 V(super_matrix_g)$wealth <- attributes_village35$room_no
 row_super_matrix <- rowSums(super_matrix)
@@ -163,7 +161,7 @@ select(arranged_transitivity, network, transitivity_calc)
 Fuel/food lending is the most transitive relationship of the four; 27% of all triads are closed triangles in the fuel/food lending network. In other words, when 2 HHs both name a third person as someone they lend kerosene and rice to, there’s more than 1/4th chance that the 2 HHs also name each other. In contrast, money borrowing is the least transitive. Only 17% of all triads in the money borrowing network are closed triangles. Put differently, when two HHs both name a third person as someone they borrow money from, there’s a 17% chance that they also name each other.
 To test how our transitivity results compare to random networks with the same number of nodes and edges as our 4 networks, I generate the following random networks:
 
-### transitivity of a random network with equivalent characteristics as the kerosene/rice lending network 
+### (A) transitivity of a random network with equivalent characteristics as the kerosene/rice lending network 
 
 ```{r}
 random_lend_fufo <- replicate(1000, transitivity(sample_gnm(n=vcount(lend_fufo_g), m=ecount(lend_fufo_g), directed = FALSE)))
@@ -175,7 +173,7 @@ abline(v=c((transitivity(lend_fufo_g)), mean(random_lend_fufo)), col=c("blue", "
 ```
  In black, the density plot outlines the null distribution of transitivity in random networks with the edge and vertex characteristics of our fuel/food lending network (Erdos-Renyi model). The mean of this null distribution of transitivity is highlighted in red. Our obtained transitivity value from the actual fuel/food lending network is in blue. There is clearly more triadic closure in the actual fuel/food lending network (i.e. more clustering of ties) than in randomly generated networks. This implies that the actual fuel/food lending network has much more triadic closure than what would be predicted by chance.
 
-### transitivity of a random network with equivalent characteristics as the kerosene/rice borrowing network 
+### (B) transitivity of a random network with equivalent characteristics as the kerosene/rice borrowing network 
 
 ```{r}
 random_bor_fufo <- replicate(1000, transitivity(sample_gnm(n=vcount(borrow_fufo_g), m=ecount(borrow_fufo_g), directed = FALSE)))
@@ -187,7 +185,7 @@ abline(v=c((transitivity(borrow_fufo_g)), mean(random_bor_fufo)), col=c("blue", 
 ```
 In the observed kerosene/rice borrowing network, we again see much more triadic closure than in random networks with similar vertex and edge characteristics.
 
-### transitivity of a network with equivalent characteristics to the money lending network 
+### (C) transitivity of a network with equivalent characteristics to the money lending network 
 
 ```{r}
 random_lend_money <- replicate(1000, transitivity(sample_gnm(n=vcount(lend_money_g), m=ecount(lend_money_g),directed = FALSE)))
@@ -198,7 +196,7 @@ abline(v=c((transitivity(lend_money_g)), mean(random_lend_money)), col=c("blue",
 ```
 In the observed money lending network, we also see much more triadic closure than in random networks with similar vertex and edge characteristics.
 
-### transitivity of a random network with equivalent characteristics to the money borrowing network 
+### (D) transitivity of a random network with equivalent characteristics to the money borrowing network 
 
 ```{r}
 random_bor_money <- replicate(1000, transitivity(sample_gnm(n=vcount(borrow_money_g), m=ecount(borrow_money_g), directed = FALSE)))
@@ -243,4 +241,43 @@ For fuel/food and money borrowing networks, the wealth assortativity coefficient
 ## Double Sampling
 Since we are considering undirected networks, transitivity and assortativity of the double sampled networks should - in theory - be the same. Fuel/food lending and borrowing networks should yield exactly the same clustering coefficients and equal values on the 3 assortatitivity measures. And, likewise, transitivity and assortativity measures should be equal for the money lending and money borrowing networks. However, we observe considerable differences in these measures due to measurement error.  Jackson et al. (2012) point out that there are several potential sources of measurement error in their data on the 75 Indian villages (of which our dataset is a subset, as it covers one of the 75 villages). Firstly, the data was collected using surveys. Generally, survey data is prone to measurement error because people often forget to mention some of their connections, they get fatigued by interviews. And specifically in this research, Jackson et al. (2012) set a cap on how many borrowers/lenders each surveyed participant can name (the survey did not allow individuals to name more than five or eight other people). This means that some households with many connections might have omitted some of their lender/borrower connections (although the authors claim that the cap was reached only in a negligible number of cases).
 
-## 
+## Comparing Assortativity Results, Suggesting Further Data
+
+```{r}
+mean_transitivity <- (t1+t2+t3+t4)/4
+print(mean_transitivity)
+mean_assortativity_caste <- (a11+a21+a31+a41)/4
+print(mean_assortativity_caste)
+mean_assortativity_religion <- (a12+a22+a32+a42)/4
+print(mean_assortativity_religion)
+mean_assortativity_wealth <- (a13+a23+a33+a43)/4
+print(mean_assortativity_wealth)
+```
+Overall, we find homophily based on religion and caste, and some degree of heterophily based on wealth in the village. Of the 3 assortativity attribute types considered, we see that the assortativity coefficient for religion is the highest - there is substantial (positive) assortative mixing by religion. This means that a substantial (above-chance) proportion of surveyed households within the village reported favor exchange with households of the same religion.
+
+One potential mechanism underlying such homophily based on religion could be selection (Easley and Kleinberg,2010). A number of studies from rural India report substantial religious segragation. According to Mishra and Bhardwaj (2021), members of the Muslim minority in India often live in separate neighborhoods than Hindus. And, clearly, when people live in neighborhoods, attend schools or work in companies that are relatively religiously homogeneous compared to the population at large (spatially segregated), than the social environment favors opportunities to form friendships and exchange favors with others who have the same religion. Overall, in order to better understand the mechanisms undelying the observed religion homophily, it would be beneficial to also obtain data on spatial distribution of the households within the village and to find out whether the religious groups are spatially segregated.
+
+We also find some, although lower (on average), positive assortative mixing by caste. This means that there is a higher probability of favors being exchanged, for example, between 2 members of the Forward Caste, than what would be predicted by chance. Generally, our dataset differentiates among 5 different caste categories: (1) Forward Caste (incoporating Brahmans, Kshatriyas, Vaishyas), (2) Scheduled Caste (Dalits or “untouchables"), (3) Other Backwards Caste (Shudras), (4) Scheduled Tribe (ethnic minority Adivasis) and (5) Muslims. To better understand the mechanisms behind this caste-homophily, it would be interesting to see whether favors are exchanged primarily among friends or among households that are related. Clearly, related households usually belong to the same casts and so, the caste homophily in favor networks could potentially be inscribed to favor exchange among relatives (Banerjee et al. 2013). In fact, according to Ray (1998), poor Indian families who lack access to formal lending markets most commonly rely on relatives for money loans.
+
+Finally, our results suggest that favor exchange in the village is, on average disassortative by wealth.  In other words, villagers are more likely to provide favors to other villagers who own dissimilar amounts of wealth, rather than to villagers who have similar wealth levels. However, all the assortativity coefficients are close to 0 (especially in the money borrowing network). And so, wealth is overall not a strong predictor of connectivity in the 4 favor networks. Furthermore, it must be pointed out, that the wealth assortativity results might have been influenced by our chosen proxy for wealth (i.e. we proxied wealth by the number of rooms). Clearly, future research should establish whether number of rooms is, indeed, a good proxy of wealth in the rural Indian context - whether it closely correlates with wealth. Potentially, future research might consider creating a more complex proxy of wealth, which might include variables electricity, rooftype or number of beds all of which are in the attribute dataset "vil35_meta.csv"
+
+```{r}
+mean_transitivity <- (t1+t2+t3+t4)/4
+print(mean_transitivity)
+```
+Jackson et al. (2012) raises a further issue with respect to the collected data; he points out that not all villagers were surveyed and so there are missing nodes and links in the dataset. This might have biased the results downwards; especially the reported transitivity coefficient might be biased downward. Therefore, future research might consider surveying a larger proportion of the village population. Also, it might be worth considering to calculate support coefficient (metric proposed by Jackson et al. 2012), in addition to the clustering coefficient. In the village, there is overabundance of informal lending/borrowing, yet the mean clustering coefficient is only about 22% in the 4 networks.  This brings about a puzzle - how can pro-social norms of returning favors be enforced if the clustering coefficient is so low?  Generally, high clustering coefficient is seen as a social enforcement mechanism/a signal of trust in the network - if two individuals are connected by an embedded edge, it is easier for them to trust one another and to have confidence in the integrity of transactions that take place between them.  As Granovetter (1992) states: "My mortification at cheating a friend of long standing may be substantial, even when undiscovered. It may increase when a friend becomes aware of it. But it may become even more unbaarable when our mutual friends uncover the deceit and tell one another." Overall, villagers in the 75 Indian villages have disjoint groups of connections. And the study by Jackson et al. (2012) presents evidence that - in network structures that contain a lot of disjoint connections - support tends to be several times higher than transitivity, and it might be generally a more approporiate measure of social enforcement in such networks. 
+
+## References
+Banerjee, A., Duflo, E., Ghatak, M., & Lafortune, J. (2013). Marry for what? Caste and mate selection in modern India. American Economic Journal: Microeconomics, 5(2), 33-72.
+
+Easley, D., & Kleinberg, J. (2010). Networks, crowds, and markets (Vol. 8). Cambridge: Cambridge university press.
+
+Granovetter, M. (1992). Problems of explanation in economic sociology. Networks and organizations: Structure, form, and action, 25-56.
+
+Jackson, M. O., Rodriguez-Barraquer, T., & Tan, X. (2012). Social capital and social quilts: Network patterns of favor exchange. American Economic Review, 102(5), 1857-97.
+
+Mishra, A. K., & Bhardwaj, V. (2021). Welfare implications of segregation of social and religious groups in India: analyzing from wealth perspectives. International Journal of Social Economics.
+
+Newman, M. (2018). Networks. Oxford university press.
+
+Ray, D. (1998). Development economics. Princeton University Press.
